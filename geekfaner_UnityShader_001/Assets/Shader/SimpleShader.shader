@@ -48,29 +48,43 @@ Shader "geekfaner_UnityShader001/Simple Shader"
 				float4 vertex : POSITION;
 				//NORMAL contains the direction of normal of the vertex in Model Space
 				float3 normal : NORMAL;
-				//TEXCOORD0 contains the frist set of UV coordinate of the vertex
+				//TEXCOORD0 contains the frist set of UV coordinate of the vertex. The type of it can be float2/float4
+				//There are many TEXCOORD can be used here. For Shader Model2(default SM of Unity)/Shader Model3, n is 8.For SM4/SM5, n is 16.
+				//Normally, there are 2 set of UV for one mesh, so just use TEXCOORD0 and TEXCOORD1.
 				float2 texcoord : TEXCOORD0;
+				//COLOR contains the vertex color
+				fixed4 color : COLOR;
 			};
 			
 			//Setup a struct which is used to contain the output variable of VS/input variable of PS
 			struct v2f {
-				//SV_POSITION contains the coordinate of the vertex in Clip Space
-				//SV_POSITION is mandatory, or GPU cannot get the coordinate in Clip Space, and cannot get the coordinate on Screen
+				//SV_POSITION contains the coordinate of the vertex in homogenous Space
+				//SV_POSITION is mandatory, or GPU cannot get the coordinate in homogenous Space, and cannot get the coordinate on Screen
 				float4 pos : SV_POSITION;
 				//COLOR0 can be used to store anything, and most time the color of the vertex
 				fixed4 color : COLOR0;
 			};
 
+			//Position & SV_POSITION and so on are the semantics of CG/HLSL
+			//Most time, these semantics do not have their means, but Unity give its means for Convenient data transfer
+			//But for the same semantics, it will have different means when it's by the different part.
+			//For example, TEXCOORD0 means the frist set of UV coordinate of the vertex when it is in the struct a2v.
+			//And it allowed us to define it when it is in the struct v2f.
+
+			//From DX10, some system-value semantics is defined for render pipeline, such as SV_POSITION
+			//It means the coordinate of the vertex in homogenous Space, and it will be used to get the position of the vertex on the screen.
+			//Since it is new feature of DX10, so we can use COLOR instead of SV_Target, POSITION instean of SV_POSITION. But for PS4, we must use SV_POSITION.
+
 			//VS is excuted by vertex
 			//Input variable "v" is get from the struct a2v
 			//Output variable "v2f" is get from the struct v2f
-			//Both Position and SV_POSITION is the semantics of CG/HLSL
 			v2f vert(a2v v){
 				v2f o;
-				//UNITY_MARTIX_MVP is the Model##View##Projection martix, which is used to get the coordinate in Clip Space from the coordinate in Model Space
+				//UNITY_MARTIX_MVP is the Model##View##Projection martix, which is used to get the coordinate in homogenous Space from the coordinate in Model Space
+				//If no define UNITY_USE_PREMULTIPLIED_MATRICES, it is better to use "mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(pos, 1.0)))" since it's more efficient
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 				//(r, g, b, a), so (0.0, 0.0, 0.0, 1.0) is black and (1.0, 1.0, 1.0, 1.0) is white
-				o.color = fixed4(1.0, 1.0, 1.0, 1.0);
+				o.color = fixed4(v.normal, 1.0);
 				return o;
 			}
 
