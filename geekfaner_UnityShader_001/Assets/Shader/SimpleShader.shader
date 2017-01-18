@@ -37,6 +37,10 @@ Shader "geekfaner_UnityShader001/Simple Shader"
 			#pragma vertex vert
 			#pragma fragment frag
 
+			//"UnityCG.cginc" included many useful function/struct/Macrodefine such as appdata_full and so on
+			//"UnityShaderVariables.cginc" contains many useful variable such as UNITY_MARTIX_MVP, which is inclued automaticlly.
+			#include "UnityCG.cginc"
+
 			//Before use the variable, you must define it. 
 			//If the variable name which is defined here is the same with the one in Properties, the type should also be the same, and then, you can change its value by Editor
 			//Or it is a private variable in Shader.
@@ -83,13 +87,31 @@ Shader "geekfaner_UnityShader001/Simple Shader"
 			//VS is excuted by vertex
 			//Input variable "v" is get from the struct a2v
 			//Output variable "v2f" is get from the struct v2f
-			v2f vert(a2v v){
+			v2f vert(appdata_full v){
 				v2f o;
 				//UNITY_MARTIX_MVP is the Model##View##Projection martix, which is used to get the coordinate in homogenous Space from the coordinate in Model Space
 				//If no define UNITY_USE_PREMULTIPLIED_MATRICES, it is better to use "mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(pos, 1.0)))" since it's more efficient
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 				//(r, g, b, a), so (0.0, 0.0, 0.0, 1.0) is black and (1.0, 1.0, 1.0, 1.0) is white
-				o.color = fixed4(v.normal, 1.0);
+				//visualization the normal direction
+				/*o.color = fixed4(v.normal, 1.0);*/
+				//visualization the tangent direction
+				/*o.color = v.tangent;*/
+				//visualization the binormal direction
+				/*fixed3 binormal = cross(v.normal, v.tangent.xyz) * v.tangent.w;
+				o.color = fixed4(binormal, 1.0);*/
+				//visualization the frist set of UV coordinate
+				o.color = fixed4(v.texcoord.xy, 0.0, 1.0);
+				//visualization the second set of UV coordinate
+				/*o.color = fixed4(v.texcoord1.xy, 0.0, 1.0);*/
+				//visualization the fractional part of the frist set of UV coordinate
+				/*o.color = frac(v.texcoord);
+				if (any(saturate(v.texcoord) - v.texcoord)) {
+					o.color.b = 0.5;
+				}
+				o.color.a = 1.0;*/
+				//visualization the vertex color
+				/*o.color = v.color;*/
 				return o;
 			}
 
