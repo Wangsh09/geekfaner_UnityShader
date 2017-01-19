@@ -52,13 +52,16 @@ Shader "geekfaner_UnityShader001/Simple Shader"
 			//Unity support semantics such as POSITION/TANGENT/NORMAL/TEXCOORD0/TEXCOORD1/TEXCOORD2/TEXCOORD3/COLOR for VS Input
 			//a2v means application to vertex
 			//These data are get from mesh(vertex position/normal/tangent/uv/vertex color and so on)
+			//For PC, float/half/fixed will be handled as float
+			//For mobile, although fixed is usually handled as float/half, they still have some precision difference.
+			//You should use data type with low precision for high performance, for example, using "fixed" for color and unit vector, and make sure you will get the correct result by the real GPU.
 			struct a2v {
 				//POSITION contains the coordinate of the vertex in Model Space
 				float4 vertex : POSITION;
 				//NORMAL contains the direction of normal of the vertex in Model Space
 				float3 normal : NORMAL;
 				//TEXCOORD0 contains the frist set of UV coordinate of the vertex. The type of it can be float2/float4
-				//There are many TEXCOORD can be used here. For Shader Model2(default SM of Unity)/Shader Model3, n is 8.For SM4/SM5, n is 16.
+				//There are many TEXCOORD can be used here. For Shader Model2(default SM of Unity)/Shader Model3(just like platform with OpenGL), n is 8.For SM4/SM5, n is 16.
 				//Normally, there are 2 set of UV for one mesh, so just use TEXCOORD0 and TEXCOORD1.
 				float2 texcoord : TEXCOORD0;
 				//COLOR contains the vertex color
@@ -87,12 +90,18 @@ Shader "geekfaner_UnityShader001/Simple Shader"
 			//VS is excuted by vertex
 			//Input variable "v" is get from the struct a2v
 			//Output variable "v2f" is get from the struct v2f
+			//DX9/11 do not support tex2D since VS in DX could not get the information of LOD, so you can use tex2Dlod instead. Since tex2Dlod is the new feature of SM 3.0, so "#pragma target 3.0" is needed.
+			//Since the coordinate of DX and OpenGL is not the same(they have an opposite Y axis), Unity will handle it automaticlly, except handle it when AA is opened, and multi textures are used, then, you need to handle it by yourself.
+			//Shader only support few register and command, so Shader must be small, especially for PS, different restrict for different Shader and Shader Model.
+			//Avoid if-else and loop. Or, the condition better be constant, and the content better be simple.
+			//Never divided by 0, or the result will be undefine.
 			v2f vert(appdata_full v){
 				v2f o;
 				//UNITY_MARTIX_MVP is the Model##View##Projection martix, which is used to get the coordinate in homogenous Space from the coordinate in Model Space
 				//If no define UNITY_USE_PREMULTIPLIED_MATRICES, it is better to use "mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(pos, 1.0)))" since it's more efficient
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 				//(r, g, b, a), so (0.0, 0.0, 0.0, 1.0) is black and (1.0, 1.0, 1.0, 1.0) is white
+				//DX do not support fixed4(0.0), and OpenGL support fixed4(0.0) just like fixed4(0.0, 0.0, 0.0, 0.0)
 				//visualization the normal direction
 				/*o.color = fixed4(v.normal, 1.0);*/
 				//visualization the tangent direction
