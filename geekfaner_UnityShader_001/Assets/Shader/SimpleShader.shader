@@ -1,6 +1,4 @@
 ﻿/******************************************************************************
-*(C) Copyright 2017 Shuo Wang.
-* All Rights Reserved
 * Owner: Shuo Wang, wangshuo@geekfaner.com
 ******************************************************************************/
 //Shader Name, Which is used for quickly found out the right shader when setup materials
