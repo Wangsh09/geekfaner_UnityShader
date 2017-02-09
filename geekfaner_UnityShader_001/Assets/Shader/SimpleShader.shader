@@ -2,7 +2,7 @@
 * Owner: Shuo Wang, wangshuo@geekfaner.com
 ******************************************************************************/
 //Shader Name, Which is used for quickly found out the right shader when setup materials
-Shader "geekfaner_UnityShader001/Simple Shader"
+Shader "geekfaner/Simple Shader"
 {
 	//Optional
 	Properties
