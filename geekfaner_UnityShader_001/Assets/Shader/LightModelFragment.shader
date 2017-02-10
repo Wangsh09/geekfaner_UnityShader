@@ -40,23 +40,25 @@ Shader "geekfaner/Light Model Fragment"
 			struct v2f {
 				float4 pos : SV_POSITION;
 				float3 worldNormal : TEXCOORD0;
+				float3 worldLightDir : TEXCOORD1;
 #ifdef _Phong
-				float3 worldView : TEXCOORD1;
-				float3 worldReflect : TEXCOORD2;
+				float3 worldView : TEXCOORD2;
+				float3 worldReflect : TEXCOORD3;
 #else
-				float3 worldHalf : TEXCOORD3;
+				float3 worldHalf : TEXCOORD2;
 #endif
 			};
 
-			v2f vert(appdata_full v) {
+			v2f vert(a2v v) {
 				v2f o;
 
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 
-				o.worldNormal = mul(v.normal, (float3x3)unity_WorldToObject);
+				o.worldNormal = UnityObjectToWorldNormal(v.normal);
+				o.worldLightDir = WorldSpaceLightDir(v.vertex);
 
 #ifdef _Phong
-				o.worldView = _WorldSpaceCameraPos.xyz - mul(unity_ObjectToWorld, v.vertex);			
+				o.worldView = WorldSpaceViewDir(v.vertex);
 				o.worldReflect = reflect(-_WorldSpaceLightPos0.xyz, o.worldNormal);
 #else
 				o.worldHalf = _WorldSpaceLightPos0.xyz + o.worldNormal;
@@ -70,7 +72,7 @@ Shader "geekfaner/Light Model Fragment"
 				fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz;
 
 				fixed3 worldNormal = normalize(i.worldNormal);
-				fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
+				fixed3 worldLightDir = normalize(i.worldLightDir);
 
 #ifdef _Lambert
 				fixed3 Lambert = saturate(dot(worldNormal, worldLightDir));

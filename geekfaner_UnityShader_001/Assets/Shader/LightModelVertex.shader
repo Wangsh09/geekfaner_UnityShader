@@ -42,15 +42,15 @@ Shader "geekfaner/Light Model Vertex"
 				fixed4 color : COLOR0;
 			};
 
-			v2f vert(appdata_full v) {
+			v2f vert(a2v v) {
 				v2f o;
 
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 
 				fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz;
 
-				fixed3 worldNormal = normalize(mul(v.normal, (float3x3)unity_WorldToObject));
-				fixed3 worldLightDir = normalize(_WorldSpaceLightPos0.xyz);
+				fixed3 worldNormal = normalize(UnityObjectToWorldNormal(v.normal));
+				fixed3 worldLightDir = normalize(WorldSpaceLightDir(v.vertex));
 
 #ifdef _Lambert 
 				fixed3 Lambert = saturate(dot(worldNormal, worldLightDir));
@@ -60,7 +60,7 @@ Shader "geekfaner/Light Model Vertex"
 				fixed3 diffuse = _LightColor0.xyz * _Diffuse.xyz * HalfLambert;
 #endif
 
-				fixed3 viewDir = normalize(_WorldSpaceCameraPos.xyz - mul(unity_ObjectToWorld, v.vertex).xyz);
+				fixed3 viewDir = normalize(WorldSpaceViewDir(v.vertex));
 #ifdef _Phong
 				fixed3 reflectDir = normalize(reflect(-worldLightDir, worldNormal));
 				float phong = dot(viewDir, reflectDir);
