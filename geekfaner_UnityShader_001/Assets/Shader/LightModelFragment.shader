@@ -54,14 +54,15 @@ Shader "geekfaner/Light Model Fragment"
 
 				o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 
-				o.worldNormal = UnityObjectToWorldNormal(v.normal);
-				o.worldLightDir = WorldSpaceLightDir(v.vertex);
+				o.worldNormal = normalize(UnityObjectToWorldNormal(v.normal));
+				o.worldLightDir = normalize(WorldSpaceLightDir(v.vertex));
+				fixed3 worldView = normalize(WorldSpaceViewDir(v.vertex));
 
 #ifdef _Phong
-				o.worldView = WorldSpaceViewDir(v.vertex);
-				o.worldReflect = reflect(-_WorldSpaceLightPos0.xyz, o.worldNormal);
+				o.worldView = worldView;
+				o.worldReflect = reflect(-o.worldLightDir, o.worldNormal);
 #else
-				o.worldHalf = _WorldSpaceLightPos0.xyz + o.worldNormal;
+				o.worldHalf = o.worldLightDir + worldView;
 #endif
 
 				return o;
@@ -101,5 +102,5 @@ Shader "geekfaner/Light Model Fragment"
 		}
 	}
 
-	FallBack "Diffuse"
+	FallBack "Specular"
 }
