@@ -8,6 +8,8 @@ Shader "geekfaner/Single Texture World"
 		_MainTex("MainTex", 2D) = "white" {}
 		_BumpTex("BumpTex", 2D) = "bump" {}
 		_BumpScale("BumpScale", Range(0,1)) = 1.0
+		_MaskTexture("MaskTexture", 2D) = "white" {}
+		_MaskScale("MaskScale", Range(0,1)) = 1.0
 		_Specular("Specular", Color) = (1.0, 1.0, 1.0, 1.0)
 		_Gloss("Gloss", Range(8.0, 256)) = 20
 	}
@@ -37,6 +39,8 @@ Shader "geekfaner/Single Texture World"
 			sampler2D _BumpTex;
 			float4 _BumpTex_ST;
 			float _BumpScale;
+			sampler2D _MaskTexture;
+			float _MaskScale;
 			fixed4 _Specular;
 			float _Gloss;
 
@@ -98,6 +102,8 @@ Shader "geekfaner/Single Texture World"
 
 				fixed3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;
 
+				fixed mask = tex2D(_MaskTexture, i.uv.xy).r * _MaskScale;
+
 #ifdef _Lambert
 				fixed3 Lambert = saturate(dot(worldNormal, WorldLightDir));
 				fixed3 diffuse = _LightColor0.xyz * albedo * Lambert;
@@ -109,11 +115,11 @@ Shader "geekfaner/Single Texture World"
 #ifdef _Phong
 				fixed3 reflectDir = normalize(reflect(-WorldLightDir, worldNormal));
 				float phong = dot(WorldView, reflectDir);
-				fixed3 specular = _LightColor0.xyz * _Specular.xyz * pow(saturate(phong), _Gloss);
+				fixed3 specular = _LightColor0.xyz * _Specular.xyz * pow(saturate(phong), _Gloss) * mask;
 #else
 				fixed3 WorldHalf = normalize(WorldLightDir + WorldView);
 				float blinn_phong = dot(worldNormal, WorldHalf);
-				fixed3 specular = _LightColor0.xyz * _Specular.xyz * pow(saturate(blinn_phong), _Gloss);
+				fixed3 specular = _LightColor0.xyz * _Specular.xyz * pow(saturate(blinn_phong), _Gloss) * mask;
 #endif
 				return fixed4(diffuse + ambient + specular, 1.0);
 			}
