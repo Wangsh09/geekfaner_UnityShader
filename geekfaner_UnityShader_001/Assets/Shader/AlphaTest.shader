@@ -15,6 +15,9 @@
 		{
 			Tags {"LightMode" = "ForwardBase"}
 
+			//Disable cull to draw both side of the object
+			Cull Off
+
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
