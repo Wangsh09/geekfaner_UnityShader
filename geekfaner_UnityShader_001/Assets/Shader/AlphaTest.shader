@@ -22,6 +22,7 @@
 			#pragma vertex vert
 			#pragma fragment frag
 			#include "Lighting.cginc"
+			#include "AutoLight.cginc"
 			
 			#define _Lambert
 
@@ -38,6 +39,7 @@
 				float2 uv : TEXCOORD0;
 				float3 WorldNormal : TEXCOORD1;
 				float3 WorldLight : TEXCOORD2;
+				SHADOW_COORDS(3)
 			};
 
 			float4 _Color;
@@ -53,6 +55,7 @@
 				o.WorldNormal = UnityObjectToWorldNormal(v.normal);
 				o.WorldLight = WorldSpaceLightDir(v.vertex);
 
+				TRANSFER_SHADOW(o);
 				return o;
 			}
 			
@@ -76,7 +79,9 @@
 				fixed3 diffuse = unity_LightColor0.rgb * albedo * HalfLambert;
 #endif
 
-				return fixed4(ambient + diffuse, 1.0);
+				fixed shadow = SHADOW_ATTENUATION(i);
+
+				return fixed4(ambient + diffuse * shadow, 1.0);
 			}
 			ENDCG
 		}
