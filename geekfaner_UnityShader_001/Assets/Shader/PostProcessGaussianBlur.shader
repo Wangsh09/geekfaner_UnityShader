@@ -44,10 +44,10 @@
 			v2f o;
 			o.pos = mul(UNITY_MATRIX_MVP, v.vertex);
 			o.uv[0] = v.uv;
-			o.uv[1] = v.uv + float2(_MainTex_TexelSize.y * 1, 0.0) * _BlurSize;
-			o.uv[2] = v.uv + float2(_MainTex_TexelSize.y * (-1), 0.0) * _BlurSize;
-			o.uv[3] = v.uv + float2(_MainTex_TexelSize.y * 2, 0.0) * _BlurSize;
-			o.uv[4] = v.uv + float2(_MainTex_TexelSize.y * (-2), 0.0) * _BlurSize;
+			o.uv[1] = v.uv + float2(_MainTex_TexelSize.x * 1, 0.0) * _BlurSize;
+			o.uv[2] = v.uv + float2(_MainTex_TexelSize.x * (-1), 0.0) * _BlurSize;
+			o.uv[3] = v.uv + float2(_MainTex_TexelSize.x * 2, 0.0) * _BlurSize;
+			o.uv[4] = v.uv + float2(_MainTex_TexelSize.x * (-2), 0.0) * _BlurSize;
 			return o;
 		}
 
