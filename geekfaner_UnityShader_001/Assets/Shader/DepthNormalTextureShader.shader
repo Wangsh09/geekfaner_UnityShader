@@ -14,7 +14,7 @@
 			#pragma fragment frag
 			#include "UnityCG.cginc"
 
-			//#define DEPTH
+			#define DEPTH
 
 #ifdef DEPTH
 			sampler2D _CameraDepthTexture;
@@ -48,11 +48,11 @@
 				float linearDepth = Linear01Depth(d);
 				return fixed4(linearDepth, linearDepth, linearDepth, 1.0);
 #else
-				/*float4 dn = tex2D(_CameraDepthNormalsTexture, i.uv);
+				float4 dn = tex2D(_CameraDepthNormalsTexture, i.uv);
 				float depth;
 				float3 normal;
-				DecodeDepthNormal(dn, depth, normal);*/
-				float3 normal = DecodeViewNormalStereo(tex2D(_CameraDepthNormalsTexture, i.uv));
+				DecodeDepthNormal(dn, depth, normal);
+				//float3 normal = DecodeViewNormalStereo(tex2D(_CameraDepthNormalsTexture, i.uv));
 				return fixed4(normal * 0.5 + 0.5, 1.0);
 #endif
 			}

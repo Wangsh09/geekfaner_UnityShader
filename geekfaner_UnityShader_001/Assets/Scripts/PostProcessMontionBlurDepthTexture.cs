@@ -36,10 +36,10 @@ public class PostProcessMontionBlurDepthTexture : PostProcessBase {
         {
             material.SetFloat("_BlurSize", BlueSize);
             material.SetMatrix("_PreviousViewProjectionMatrix", previousViewProjectionMatrix);
-            Matrix4x4 transformFromPToW = myCamera.projectionMatrix * myCamera.worldToCameraMatrix;
-            Matrix4x4 transformFromPToWinverse = transformFromPToW.inverse;
-            material.SetMatrix("_CurrentViewProjectionMatrix", transformFromPToWinverse);
-            previousViewProjectionMatrix = transformFromPToW;
+            Matrix4x4 transformFromWToP = myCamera.projectionMatrix * myCamera.worldToCameraMatrix;
+            Matrix4x4 transformFromWToPinverse = transformFromWToP.inverse;
+            material.SetMatrix("_CurrentViewProjectionMatrix", transformFromWToPinverse);
+            previousViewProjectionMatrix = transformFromWToP;
 
             Graphics.Blit(src, dest, material);
         }
