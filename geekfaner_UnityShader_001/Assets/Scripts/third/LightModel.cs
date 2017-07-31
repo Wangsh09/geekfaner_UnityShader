@@ -109,4 +109,25 @@ public class LightModel : MonoBehaviour{
     {
         material.SetFloat("_Gloss", value * 100);
     }
+
+    public void IsObjectNormal(bool check)
+    {
+        if (check)
+            material.SetFloat("_object_normal", 1.0f);
+        else
+            material.SetFloat("_object_normal", 0.0f);
+    }
+
+    public void ChangeBumpScale(float value)
+    {
+        material.SetFloat("_BumpScale", value * 2 - 1);
+    }
+
+    public void IsRamp(bool check)
+    {
+        if (check)
+            material.SetFloat("_ramp_tex", 1.0f);
+        else
+            material.SetFloat("_ramp_tex", 0.0f);
+    }
 }
