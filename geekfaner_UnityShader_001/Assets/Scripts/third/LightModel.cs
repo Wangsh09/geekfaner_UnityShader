@@ -130,4 +130,61 @@ public class LightModel : MonoBehaviour{
         else
             material.SetFloat("_ramp_tex", 0.0f);
     }
+
+    public void IsAlphaTest(bool check)
+    {
+        Texture2D alpha_test = (Texture2D)Resources.Load("Texture/alpha_test", typeof(Texture2D));
+        Texture2D airplane = (Texture2D)Resources.Load("Texture/FX_waterfall4", typeof(Texture2D));
+        if (check)
+        {
+            material.SetFloat("_alpha_test", 1.0f);
+            material.SetTexture("_MainTex", alpha_test);
+        }
+        else
+        {
+            material.SetFloat("_alpha_test", 0.0f);
+            material.SetTexture("_MainTex", airplane);
+        }
+    }
+
+    public void ChangeAlphaThreshold(float value)
+    {
+        material.SetFloat("_alpha_threshold", value);
+    }
+
+    public void IsAlphaBlend(bool check)
+    {
+        if (check)
+        {
+            material.SetFloat("_alpha_blend", 1.0f);
+        }
+        else
+        {
+            material.SetFloat("_alpha_blend", 0.0f);
+        }
+    }
+
+    public void IsCull(bool check)
+    {
+        if (check)
+            material.SetFloat("_cull", 1.0f);
+        else
+            material.SetFloat("_cull", 0.0f);
+    }
+
+    public void IsVertexLit(bool check)
+    {
+        if (check)
+            material.SetFloat("_vertex_lit", 1.0f);
+        else
+            material.SetFloat("_vertex_lit", 0.0f);
+    }
+
+    public void IsFragmentLit(bool check)
+    {
+        if (check)
+            material.SetFloat("_fragment_lit", 1.0f);
+        else
+            material.SetFloat("_fragment_lit", 0.0f);
+    }
 }
