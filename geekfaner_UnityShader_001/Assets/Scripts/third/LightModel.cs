@@ -187,4 +187,28 @@ public class LightModel : MonoBehaviour{
         else
             material.SetFloat("_fragment_lit", 0.0f);
     }
+
+    public void IsAtten(bool check)
+    {
+        if (check)
+            material.SetFloat("_atten", 1.0f);
+        else
+            material.SetFloat("_atten", 0.0f);
+    }
+
+    public void IsShadow(bool check)
+    {
+        if (check)
+            material.SetFloat("_shadow", 1.0f);
+        else
+            material.SetFloat("_shadow", 0.0f);
+    }
+
+    public void IsRim(bool check)
+    {
+        if (check)
+            material.SetFloat("_rim", 1.0f);
+        else
+            material.SetFloat("_rim", 0.0f);
+    }
 }

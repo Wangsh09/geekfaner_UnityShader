@@ -14,7 +14,6 @@
 
 			#pragma vertex vert
 			#pragma fragment frag
-
 			fixed4 _Color;
 
 			float4 vert(float4 v : POSITION) : SV_POSITION

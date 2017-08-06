@@ -24,15 +24,16 @@
 		_vertex_lit("Vertex_lit", Float) = 0.0
 		_fragment_lit("Fragment_lit", Float) = 0.0
 		_atten_texture("Atten_Texture", Float) = 0.0
+		_atten("Atten", Float) = 1.0
+		_shadow("Shadow", Float) = 1.0
+		_rimColor("RimColor", Color) = (1.0, 1.0, 1.0, 1.0)
+		_rim("Rim", Float) = 1.0
 	}
 
 	Subshader
 	{
 		Tags
 		{
-			"Queue" = "Transparent"	//"AlphaTest"
-			"IgnoreProjector" = "True"
-			"RenderType" = "Transparent"	//"TransparentCutOff"
 		}
 
 		//当开启alpha blend的时候，需要先绘制一个Z pass，以防同一个物体的不同部位发生穿插
@@ -358,6 +359,8 @@
 #pragma fragment frag
 #include "UnityCG.cginc"
 #include "Lighting.cginc"
+#include "Autolight.cginc"
+#pragma multi_compile SHADOWS_SCREEN
 
 			struct a2v {
 				float4 vertex : POSITION;
@@ -373,6 +376,7 @@
 				float4 vertex : COLOR2;
 				float2 texcoord : COLOR3;
 				float4 tangent : COLOR4;
+				SHADOW_COORDS(5)
 			};
 
 			fixed4 _Diffuse;
@@ -395,6 +399,10 @@
 			float _alpha_threshold;
 			float _alpha_blend;
 			float _vertex_lit;
+			float _atten;
+			float _shadow;
+			fixed4 _rimColor;
+			float _rim;
 		
 			v2f vert(a2v v) {
 				v2f o;
@@ -467,6 +475,8 @@
 					o.color += specular.rgb;
 
 				o.texcoord = v.uv * _MainTex_ST.xy + _MainTex_ST.zw;
+
+				TRANSFER_SHADOW(o);
 
 				return o;
 			}
@@ -618,18 +628,41 @@
 					specular = specular * atten;
 				}
 
+				fixed rim = 0.0;
+				if (_fragment_specular || _fragment_diffuse)
+				{
+					if (_object_normal)
+					{
+						rim = 1 - saturate(dot(normalize(ObjSpaceViewDir(i.vertex)), ObjectNormal));
+					}
+					else
+					{
+						rim = 1 - saturate(dot(normalize(ObjSpaceViewDir(i.vertex)), normalize(i.normal)));
+					}
+					if (_rim)
+						rim = floor(rim + 0.2);
+					else
+						rim = 0;
+				}
+
 				if ((_vertex_diffuse != 0.0) && (_vertex_specular != 0.0))
-					color = ambient + diffuseSpecular;
+					color = ambient + diffuseSpecular + rim * _rimColor;
 				else
-					color = ambient + diffuse + specular;
+					color = ambient + diffuse + specular + rim * _rimColor;
 				
+				fixed shadow;
+				if (_shadow)
+					shadow = SHADOW_ATTENUATION(i);
+				else
+					shadow = 1.0;
+
 				if (_alpha_blend)
 				{
-					return fixed4(color.rgb, albedo.a);
+					return fixed4(color.rgb * shadow, albedo.a);
 				}
 				else
 				{
-					return fixed4(color.rgb, 1.0);
+					return fixed4(color.rgb * shadow, 1.0);
 				}
 			}
 			ENDCG
@@ -650,9 +683,10 @@
 #pragma vertex vert
 #pragma fragment frag
 #include "UnityCG.cginc"
+#include "Autolight.cginc"
 #include "Lighting.cginc"
-#include "AutoLight.cginc"
 #pragma multi_compile_fwdadd
+#pragma multi_compile SHADOWS_SCREEN
 
 			struct a2v {
 				float4 vertex : POSITION;
@@ -667,6 +701,7 @@
 				float4 vertex : COLOR2;
 				float2 texcoord : COLOR3;
 				float4 tangent : COLOR4;
+				SHADOW_COORDS(5)
 			};
 
 			fixed4 _Diffuse;
@@ -682,6 +717,8 @@
 			float _vertex_lit;
 			float _fragment_lit;
 			float _atten_texture;
+			float _atten;
+			fixed _shadow;
 
 			v2f vert(a2v v) {
 				v2f o;
@@ -693,6 +730,8 @@
 				o.tangent = v.tangent;
 
 				o.texcoord = v.uv * _MainTex_ST.xy + _MainTex_ST.zw;
+
+				TRANSFER_SHADOW(o);
 
 				return o;
 			}
@@ -729,6 +768,9 @@
 					float distance = length(_WorldSpaceLightPos0.xyz - mul(unity_ObjectToWorld, i.vertex).xyz);
 					fixed atten = 1 / distance;
 				}
+
+				if (!_atten)
+					atten = 1.0;
 				if (_object_normal)
 				{
 					if (_Lambert != 0.0)
@@ -760,13 +802,64 @@
 					}
 				}
 
+
+				fixed shadow;
+				if (_shadow)
+					shadow = SHADOW_ATTENUATION(i);
+				else
+					shadow = 1.0;
+
 				if (_fragment_lit)
-					return diffuse * atten;
+					return diffuse * atten * shadow;
 				else
 					return fixed4(0.0, 0.0, 0.0, 1.0);
 			}
 			ENDCG
 
+		}
+
+		// Pass to render object as a shadow caster
+		Pass
+		{
+			Name "ShadowCaster"
+			Tags{ "LightMode" = "ShadowCaster" }
+
+			ZWrite On ZTest LEqual Cull Off
+
+			CGPROGRAM
+#pragma vertex vert
+#pragma fragment frag
+#pragma target 2.0
+#pragma multi_compile_shadowcaster
+#include "UnityCG.cginc"
+
+
+			struct v2f {
+				V2F_SHADOW_CASTER;
+				float2 uv : TEXCOORD1;
+			};
+
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
+			float _alpha_test;
+			float _alpha_threshold;
+
+			v2f vert(appdata_base v)
+			{
+				v2f o;
+				TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+				o.uv = v.texcoord.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+				return o;
+			}
+
+			float4 frag(v2f i) : SV_Target
+			{
+				fixed4 albedo = tex2D(_MainTex, i.uv);
+				if (_alpha_test && (albedo.a < _alpha_threshold))
+					discard;
+				SHADOW_CASTER_FRAGMENT(i)
+			}
+			ENDCG
 		}
 	}
 }
