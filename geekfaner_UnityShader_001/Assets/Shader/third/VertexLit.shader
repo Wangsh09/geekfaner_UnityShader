@@ -1,4 +1,6 @@
-﻿Shader "Geekfaner/VertexLit"
+﻿// Upgrade NOTE: replaced '_LightMatrix0' with 'unity_WorldToLight'
+
+Shader "Geekfaner/VertexLit"
 {
 	Properties
 	{
