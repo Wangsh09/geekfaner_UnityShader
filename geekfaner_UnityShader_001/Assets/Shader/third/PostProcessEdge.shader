@@ -48,6 +48,7 @@
 				o.uv[6] = i.uv + float2(-1, 1) * _MainTex_TexelSize.xy;
 				o.uv[7] = i.uv + float2(0, 1) * _MainTex_TexelSize.xy;
 				o.uv[8] = i.uv + float2(1, 1) * _MainTex_TexelSize.xy;
+
 				return o;
 			}
 
